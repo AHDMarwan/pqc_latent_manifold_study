@@ -339,3 +339,18 @@ If the residualized latent space remains stable across
 * and circuit depths,
 
 this would support the hypothesis that parameterized quantum circuits possess an intrinsic **latent descriptor geometry**, providing a compact representation of PQC architectures that is independent of specific downstream applications.
+
+
+Open to Collaboration and Contributions
+
+This project is intended as an open research effort toward understanding the intrinsic geometry of parameterized quantum circuits. We welcome collaborations from researchers, students, and practitioners interested in quantum computing, quantum machine learning, optimization, and mathematical modeling. Contributions may include new PQC architectures, additional descriptor definitions, theoretical analyses, benchmarking datasets, validation on different quantum hardware or simulators, and improvements to the mathematical framework. Suggestions, discussions, bug reports, and pull requests are all encouraged. Our goal is to build a reproducible and extensible benchmark that can serve as a community resource for studying the latent structure of PQCs.
+
+Contact
+
+For questions, collaboration opportunities, or research discussions, please feel free to connect via LinkedIn:
+
+Marwan Ait Haddou
+[LinkedIn Profile](https://www.linkedin.com/in/marwan-ait-haddou-85b796120/)
+
+Contributions, feedback, and collaborative research proposals are always welcome.
+
