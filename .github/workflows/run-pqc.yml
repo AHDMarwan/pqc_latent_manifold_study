@@ -1,0 +1,179 @@
+name: Run PQC latent-manifold study
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Experiment size
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - default
+          - publication
+  push:
+    branches:
+      - main
+    paths:
+      - pqc_latent_manifold_study.ipynb
+      - .github/workflows/run-pqc.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pqc-latent-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  run-experiment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      MPLBACKEND: Agg
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            pennylane \
+            umap-learn \
+            networkx \
+            scipy \
+            scikit-learn \
+            pandas \
+            matplotlib \
+            tqdm \
+            ipython
+
+      - name: Convert notebook to Python runner
+        env:
+          PROFILE: ${{ github.event.inputs.profile || 'smoke' }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          notebook_path = Path("pqc_latent_manifold_study.ipynb")
+          notebook = json.loads(notebook_path.read_text(encoding="utf-8"))
+
+          chunks = [
+              "from IPython.display import display\n",
+          ]
+
+          for cell in notebook.get("cells", []):
+              if cell.get("cell_type") != "code":
+                  continue
+              source = "".join(cell.get("source", []))
+              source = "\n".join(
+                  line
+                  for line in source.splitlines()
+                  if not line.lstrip().startswith("!pip")
+              )
+              chunks.append(source)
+
+          code = "\n\n".join(chunks)
+
+          # Make the Colab-oriented notebook portable on GitHub runners.
+          code = code.replace(
+              'OUTPUT_DIR = Path("/content/pqc_latent_results")',
+              'OUTPUT_DIR = Path("results")',
+          )
+          code = code.replace(
+              '"/content/pqc_latent_results"',
+              '"pqc_latent_results"',
+          )
+          code = code.replace(
+              "files.download(archive_path)",
+              'print("Colab download skipped in GitHub Actions")',
+          )
+
+          profile = os.environ.get("PROFILE", "smoke")
+          if profile == "smoke":
+              replacements = {
+                  r"QUBIT_COUNTS = \[4, 6, 8\]": "QUBIT_COUNTS = [4, 6]",
+                  r"DEPTHS = \[1, 2, 3, 4, 5\]": "DEPTHS = [1, 2, 3]",
+                  r"N_INSTANCES = 3": "N_INSTANCES = 1",
+                  r"N_STATE_SAMPLES = 24": "N_STATE_SAMPLES = 12",
+                  r"N_PAIR_SAMPLES = 300": "N_PAIR_SAMPLES = 60",
+                  r"N_GRAD_SAMPLES = 20": "N_GRAD_SAMPLES = 6",
+                  r"N_BINS = 40": "N_BINS = 20",
+              }
+              for pattern, replacement in replacements.items():
+                  code = re.sub(pattern, replacement, code, count=1)
+          elif profile == "publication":
+              replacements = {
+                  r"N_INSTANCES = 3": "N_INSTANCES = 10",
+                  r"N_STATE_SAMPLES = 24": "N_STATE_SAMPLES = 100",
+                  r"N_PAIR_SAMPLES = 300": "N_PAIR_SAMPLES = 5000",
+                  r"N_GRAD_SAMPLES = 20": "N_GRAD_SAMPLES = 100",
+              }
+              for pattern, replacement in replacements.items():
+                  code = re.sub(pattern, replacement, code, count=1)
+
+          Path("pqc_latent_manifold_study.py").write_text(code, encoding="utf-8")
+          print(f"Generated Python runner using profile={profile}")
+          PY
+
+      - name: Run experiment
+        env:
+          PROFILE: ${{ github.event.inputs.profile || 'smoke' }}
+        run: |
+          rm -rf results pqc_latent_results.zip
+          mkdir -p results
+          python pqc_latent_manifold_study.py 2>&1 | tee results/run.log
+          if [ -f pqc_latent_results.zip ]; then
+            mv pqc_latent_results.zip results/pqc_latent_results.zip
+          fi
+          python - <<'PY'
+          import json
+          import os
+          import platform
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          metadata = {
+              "profile": os.environ.get("PROFILE", "smoke"),
+              "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+              "python": platform.python_version(),
+              "github_sha": os.environ.get("GITHUB_SHA"),
+              "github_run_id": os.environ.get("GITHUB_RUN_ID"),
+          }
+          Path("results/run_metadata.json").write_text(
+              json.dumps(metadata, indent=2),
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Upload results artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pqc-latent-results
+          path: results/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Commit results to repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pqc_latent_manifold_study.py results/
+          if git diff --cached --quiet; then
+            echo "No result changes to commit."
+          else
+            git commit -m "Store PQC experiment results [skip ci]"
+            git push
+          fi
