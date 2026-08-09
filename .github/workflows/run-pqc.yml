@@ -27,7 +27,7 @@ permissions:
 
 concurrency:
   group: corrected-pqc-latent-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   MPLBACKEND: Agg
@@ -60,6 +60,34 @@ jobs:
           rm -rf smoke_results smoke_results.zip
           python run_experiment.py --smoke --no-umap --output-dir smoke_results
           test -f smoke_results/analysis_summary.json
+
+      - name: Record validation status
+        if: always()
+        env:
+          VALIDATION_STATUS: ${{ job.status }}
+        run: |
+          mkdir -p results
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          payload = {
+              "status": os.environ.get("VALIDATION_STATUS"),
+              "github_sha": os.environ.get("GITHUB_SHA"),
+              "github_run_id": os.environ.get("GITHUB_RUN_ID"),
+              "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
+          }
+          Path("results/ci_validation_status.json").write_text(
+              json.dumps(payload, indent=2), encoding="utf-8"
+          )
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results/ci_validation_status.json
+          git commit -m "Record corrected PQC validation status [skip ci]" || true
+          git push
 
   simulate:
     name: Simulate ${{ matrix.family }} / ${{ matrix.qubits }} qubits
@@ -118,6 +146,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Fast-forward to validation status commit
+        run: git pull --ff-only origin main
 
       - uses: actions/setup-python@v5
         with:
