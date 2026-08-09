@@ -1,143 +1,164 @@
-name: Run PQC latent-manifold study
+name: Run corrected PQC latent-manifold study
 
 on:
   workflow_dispatch:
     inputs:
       profile:
-        description: Experiment size
+        description: Experiment scale
         required: true
-        default: smoke
+        default: publication
         type: choice
         options:
-          - smoke
-          - default
           - publication
+          - default
   push:
     branches:
       - main
     paths:
-      - pqc_latent_manifold_study.ipynb
-      - .github/workflows/run-pqc.yml
+      - "pqc_latent/**"
+      - "run_experiment.py"
+      - "pyproject.toml"
+      - "requirements.txt"
+      - "tests/**"
+      - ".github/workflows/run-pqc.yml"
 
 permissions:
   contents: write
 
 concurrency:
-  group: pqc-latent-${{ github.ref }}
+  group: corrected-pqc-latent-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  MPLBACKEND: Agg
+  PYTHONUNBUFFERED: "1"
+  PROFILE: ${{ github.event_name == 'workflow_dispatch' && inputs.profile || 'publication' }}
+
 jobs:
-  run-experiment:
+  validate:
+    name: Tests and smoke run
     runs-on: ubuntu-latest
-    timeout-minutes: 240
-    env:
-      MPLBACKEND: Agg
-      PYTHONUNBUFFERED: "1"
-
+    timeout-minutes: 30
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
 
-      - name: Install dependencies
+      - name: Install package and test tools
         run: |
           python -m pip install --upgrade pip
-          python -m pip install \
-            pennylane \
-            umap-learn \
-            networkx \
-            scipy \
-            scikit-learn \
-            pandas \
-            matplotlib \
-            tqdm \
-            ipython
+          python -m pip install -e . pytest
 
-      - name: Convert notebook to Python runner
-        env:
-          PROFILE: ${{ github.event.inputs.profile || 'smoke' }}
+      - name: Unit tests
+        run: python -m pytest -q
+
+      - name: Corrected quantum smoke run
         run: |
-          python - <<'PY'
-          import json
-          import os
-          import re
-          from pathlib import Path
+          rm -rf smoke_results smoke_results.zip
+          python run_experiment.py --smoke --no-umap --output-dir smoke_results
+          test -f smoke_results/analysis_summary.json
 
-          notebook_path = Path("pqc_latent_manifold_study.ipynb")
-          notebook = json.loads(notebook_path.read_text(encoding="utf-8"))
+  simulate:
+    name: Simulate ${{ matrix.family }} / ${{ matrix.qubits }} qubits
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      max-parallel: 15
+      matrix:
+        qubits: [4, 6, 8]
+        family: [hea_line, hea_ring, brickwall, ttn, symmetry_xy]
 
-          chunks = [
-              "from IPython.display import display\n",
-          ]
+    steps:
+      - uses: actions/checkout@v4
 
-          for cell in notebook.get("cells", []):
-              if cell.get("cell_type") != "code":
-                  continue
-              source = "".join(cell.get("source", []))
-              source = "\n".join(
-                  line
-                  for line in source.splitlines()
-                  if not line.lstrip().startswith("!pip")
-              )
-              chunks.append(source)
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
 
-          code = "\n\n".join(chunks)
-
-          # Make the Colab-oriented notebook portable on GitHub runners.
-          code = code.replace(
-              'OUTPUT_DIR = Path("/content/pqc_latent_results")',
-              'OUTPUT_DIR = Path("results")',
-          )
-          code = code.replace(
-              '"/content/pqc_latent_results"',
-              '"pqc_latent_results"',
-          )
-          code = code.replace(
-              "files.download(archive_path)",
-              'print("Colab download skipped in GitHub Actions")',
-          )
-
-          profile = os.environ.get("PROFILE", "smoke")
-          if profile == "smoke":
-              replacements = {
-                  r"QUBIT_COUNTS = \[4, 6, 8\]": "QUBIT_COUNTS = [4, 6]",
-                  r"DEPTHS = \[1, 2, 3, 4, 5\]": "DEPTHS = [1, 2, 3]",
-                  r"N_INSTANCES = 3": "N_INSTANCES = 1",
-                  r"N_STATE_SAMPLES = 24": "N_STATE_SAMPLES = 12",
-                  r"N_PAIR_SAMPLES = 300": "N_PAIR_SAMPLES = 60",
-                  r"N_GRAD_SAMPLES = 20": "N_GRAD_SAMPLES = 6",
-                  r"N_BINS = 40": "N_BINS = 20",
-              }
-              for pattern, replacement in replacements.items():
-                  code = re.sub(pattern, replacement, code, count=1)
-          elif profile == "publication":
-              replacements = {
-                  r"N_INSTANCES = 3": "N_INSTANCES = 10",
-                  r"N_STATE_SAMPLES = 24": "N_STATE_SAMPLES = 100",
-                  r"N_PAIR_SAMPLES = 300": "N_PAIR_SAMPLES = 5000",
-                  r"N_GRAD_SAMPLES = 20": "N_GRAD_SAMPLES = 100",
-              }
-              for pattern, replacement in replacements.items():
-                  code = re.sub(pattern, replacement, code, count=1)
-
-          Path("pqc_latent_manifold_study.py").write_text(code, encoding="utf-8")
-          print(f"Generated Python runner using profile={profile}")
-          PY
-
-      - name: Run experiment
-        env:
-          PROFILE: ${{ github.event.inputs.profile || 'smoke' }}
+      - name: Install package
         run: |
-          rm -rf results pqc_latent_results.zip
-          mkdir -p results
-          python pqc_latent_manifold_study.py 2>&1 | tee results/run.log
-          if [ -f pqc_latent_results.zip ]; then
-            mv pqc_latent_results.zip results/pqc_latent_results.zip
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Generate descriptor shard
+        run: |
+          rm -rf shard_results
+          if [ "$PROFILE" = "publication" ]; then
+            SCALE="--publication"
+          else
+            SCALE=""
           fi
+          python run_experiment.py \
+            $SCALE \
+            --generate-only \
+            --qubits "${{ matrix.qubits }}" \
+            --families "${{ matrix.family }}" \
+            --output-dir shard_results
+          test -f shard_results/pqc_descriptor_dataset.csv
+
+      - name: Upload descriptor shard
+        uses: actions/upload-artifact@v4
+        with:
+          name: pqc-shard-${{ matrix.family }}-q${{ matrix.qubits }}
+          path: shard_results/pqc_descriptor_dataset.csv
+          if-no-files-found: error
+          retention-days: 30
+
+  analyze:
+    name: Merge, analyze, and store results
+    needs: simulate
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Download all descriptor shards
+        uses: actions/download-artifact@v4
+        with:
+          pattern: pqc-shard-*
+          path: shards
+
+      - name: Merge shards and run corrected analysis
+        run: |
+          rm -rf results results.zip
+          mapfile -t FILES < <(find shards -name pqc_descriptor_dataset.csv -type f | sort)
+          echo "Found ${#FILES[@]} descriptor shards"
+          test "${#FILES[@]}" -eq 15
+
+          if [ "$PROFILE" = "publication" ]; then
+            SCALE="--publication"
+          else
+            SCALE=""
+          fi
+
+          python run_experiment.py \
+            $SCALE \
+            --analyze-csv "${FILES[@]}" \
+            --output-dir results
+
+          if [ -f results.zip ]; then
+            mv results.zip results/pqc_latent_results.zip
+          fi
+
+      - name: Add run metadata
+        run: |
           python - <<'PY'
           import json
           import os
@@ -146,34 +167,39 @@ jobs:
           from pathlib import Path
 
           metadata = {
-              "profile": os.environ.get("PROFILE", "smoke"),
+              "implementation": "corrected_multi_file_python",
+              "profile": os.environ.get("PROFILE"),
               "generated_at_utc": datetime.now(timezone.utc).isoformat(),
               "python": platform.python_version(),
               "github_sha": os.environ.get("GITHUB_SHA"),
               "github_run_id": os.environ.get("GITHUB_RUN_ID"),
+              "simulation_shards": 15,
+              "qubit_counts": [4, 6, 8],
+              "families": [
+                  "hea_line", "hea_ring", "brickwall", "ttn", "symmetry_xy"
+              ],
           }
           Path("results/run_metadata.json").write_text(
-              json.dumps(metadata, indent=2),
-              encoding="utf-8",
+              json.dumps(metadata, indent=2), encoding="utf-8"
           )
           PY
 
-      - name: Upload results artifact
+      - name: Upload final results artifact
         uses: actions/upload-artifact@v4
         with:
-          name: pqc-latent-results
+          name: pqc-latent-results-corrected-${{ env.PROFILE }}
           path: results/
           if-no-files-found: error
           retention-days: 30
 
-      - name: Commit results to repository
+      - name: Commit final results to main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pqc_latent_manifold_study.py results/
+          git add results/
           if git diff --cached --quiet; then
             echo "No result changes to commit."
           else
-            git commit -m "Store PQC experiment results [skip ci]"
+            git commit -m "Store corrected PQC publication results [skip ci]"
             git push
           fi
