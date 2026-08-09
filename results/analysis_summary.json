@@ -1,0 +1,13 @@
+{
+  "n_raw_rows": 30,
+  "n_design_points": 30,
+  "quantum_pca_two_component_variance": 0.999737763611133,
+  "pc1_R2_from_structural_scale": 0.7515606854880481,
+  "pc2_R2_from_structural_scale": 0.5975226933882604,
+  "best_exploratory_cluster_result": {
+    "space": "quantum_only",
+    "k": 2,
+    "silhouette": 0.8625273837640312
+  },
+  "pareto_design_count": 11
+}

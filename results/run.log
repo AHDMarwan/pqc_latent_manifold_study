@@ -1,0 +1,177 @@
+PennyLane: 0.45.1
+Output directory: results
+{
+  "qubit_counts": [
+    4,
+    6
+  ],
+  "depths": [
+    1,
+    2,
+    3
+  ],
+  "families": [
+    "hea_line",
+    "hea_ring",
+    "brickwall",
+    "ttn",
+    "symmetry_xy"
+  ],
+  "n_instances": 1,
+  "n_state_samples": 12,
+  "n_pair_samples": 60,
+  "n_grad_samples": 6,
+  "n_bins": 20,
+  "seed": 42
+}
+State array shape: (8, 16)
+KL expressibility: 0.05125925199733082
+Meyer–Wallach: (0.44252110554865337, 0.24287976117194618)
+Trainability: {'gradient_variance': 0.008916172119491953, 'log10_gradient_variance': -2.0498215564071343, 'mean_abs_gradient': 0.053408209360481095, 'near_zero_gradient_fraction': 0.3333333333333333}
+Resources: {'parameter_count': 24, 'compiled_depth': 4, 'total_gate_count': 11, 'two_qubit_gate_count': 3}
+  0%|          | 0/30 [00:00<?, ?it/s]  3%|▎         | 1/30 [00:00<00:02,  9.72it/s]  7%|▋         | 2/30 [00:00<00:07,  3.98it/s] 10%|█         | 3/30 [00:00<00:06,  3.99it/s] 13%|█▎        | 4/30 [00:00<00:05,  4.78it/s] 17%|█▋        | 5/30 [00:01<00:05,  4.41it/s] 20%|██        | 6/30 [00:01<00:06,  3.62it/s] 23%|██▎       | 7/30 [00:01<00:05,  4.54it/s] 27%|██▋       | 8/30 [00:01<00:05,  3.96it/s] 30%|███       | 9/30 [00:02<00:05,  3.92it/s] 33%|███▎      | 10/30 [00:02<00:04,  4.51it/s] 37%|███▋      | 11/30 [00:02<00:04,  4.26it/s] 40%|████      | 12/30 [00:03<00:05,  3.10it/s] 47%|████▋     | 14/30 [00:03<00:03,  4.29it/s] 50%|█████     | 15/30 [00:03<00:03,  4.28it/s] 53%|█████▎    | 16/30 [00:03<00:02,  4.79it/s] 57%|█████▋    | 17/30 [00:03<00:02,  4.61it/s] 60%|██████    | 18/30 [00:04<00:03,  3.96it/s] 67%|██████▋   | 20/30 [00:04<00:02,  4.34it/s] 70%|███████   | 21/30 [00:04<00:02,  4.33it/s] 73%|███████▎  | 22/30 [00:05<00:01,  4.82it/s] 77%|███████▋  | 23/30 [00:05<00:01,  4.66it/s] 80%|████████  | 24/30 [00:05<00:01,  4.04it/s] 87%|████████▋ | 26/30 [00:05<00:00,  5.62it/s] 90%|█████████ | 27/30 [00:06<00:00,  5.81it/s] 93%|█████████▎| 28/30 [00:06<00:00,  6.46it/s] 97%|█████████▋| 29/30 [00:06<00:00,  6.41it/s]100%|██████████| 30/30 [00:06<00:00,  4.62it/s]100%|██████████| 30/30 [00:06<00:00,  4.52it/s]
+Created 30 rows in 0.1 minutes
+Saved: results/pqc_descriptor_dataset.csv
+     family  n_qubits  ...  diameter  clustering_coefficient
+0  hea_line         4  ...       3.0                     0.0
+1  hea_line         4  ...       3.0                     0.0
+2  hea_line         4  ...       3.0                     0.0
+3  hea_line         6  ...       5.0                     0.0
+4  hea_line         6  ...       5.0                     0.0
+
+[5 rows x 25 columns]
+Dataset shape: (30, 25)
+
+Missing values:
+avg_shortest_path          7
+diameter                   7
+depth_setting              0
+n_qubits                   0
+seed                       0
+expressibility_kl          0
+meyer_wallach_mean         0
+instance                   0
+family                     0
+gradient_variance          0
+meyer_wallach_std          0
+log10_gradient_variance    0
+dtype: int64
+
+Descriptor ranges:
+                         count       mean  ...        75%        max
+expressibility_kl         30.0   5.624926  ...   0.322345  27.631021
+meyer_wallach_mean        30.0   0.530648  ...   0.793073   0.950170
+log10_gradient_variance   30.0  -5.956440  ...  -2.281038  -1.954156
+parameter_count           30.0  26.866667  ...  36.000000  54.000000
+compiled_depth            30.0   6.800000  ...   9.000000  21.000000
+two_qubit_gate_count      30.0   6.933333  ...   9.750000  18.000000
+connectivity_density      30.0   0.407778  ...   0.500000   0.666667
+mean_degree               30.0   1.538889  ...   1.666667   2.000000
+avg_shortest_path         23.0   1.860870  ...   2.333333   2.333333
+
+[9 rows x 8 columns]
+Design-level rows: 30
+      family  n_qubits  ...  diameter  clustering_coefficient
+0  brickwall       4.0  ...       NaN                     0.0
+1  brickwall       4.0  ...       3.0                     0.0
+2  brickwall       4.0  ...       3.0                     0.0
+3  brickwall       6.0  ...       NaN                     0.0
+4  brickwall       6.0  ...       5.0                     0.0
+
+[5 rows x 23 columns]
+                         expressibility_kl  ...  avg_shortest_path
+expressibility_kl                     1.00  ...              -0.06
+meyer_wallach_mean                   -0.69  ...              -0.14
+log10_gradient_variance              -0.15  ...              -0.53
+parameter_count                      -0.67  ...               0.36
+compiled_depth                       -0.35  ...               0.02
+two_qubit_gate_count                 -0.15  ...               0.32
+connectivity_density                 -0.11  ...              -0.99
+mean_degree                          -0.40  ...               0.15
+avg_shortest_path                    -0.06  ...               1.00
+
+[9 rows x 9 columns]
+Quantum-only explained variance: [9.31525031e-01 6.82127322e-02 2.62236389e-04]
+Full-space explained variance: [0.38710287 0.29277114 0.21273511 0.06835548 0.02467006 0.00936001]
+                           PC1    PC2    PC3
+expressibility_kl        0.590  0.372  0.717
+meyer_wallach_mean      -0.554  0.832  0.025
+log10_gradient_variance -0.588 -0.412  0.696
+  latent_axis  ...  coef_two_qubit_gate_count
+0         PC1  ...                  -0.019566
+1         PC2  ...                   0.104381
+
+[2 rows x 6 columns]
+    n_qubits  depth  ... minimum_value_family  maximum_value_family
+0        4.0    1.0  ...                  ttn           symmetry_xy
+1        4.0    1.0  ...          symmetry_xy              hea_ring
+2        4.0    1.0  ...          symmetry_xy                   ttn
+3        4.0    2.0  ...             hea_line           symmetry_xy
+4        4.0    2.0  ...          symmetry_xy              hea_ring
+5        4.0    2.0  ...          symmetry_xy                   ttn
+6        4.0    3.0  ...                  ttn           symmetry_xy
+7        4.0    3.0  ...          symmetry_xy              hea_ring
+8        4.0    3.0  ...          symmetry_xy              hea_ring
+9        6.0    1.0  ...             hea_ring           symmetry_xy
+10       6.0    1.0  ...          symmetry_xy              hea_ring
+11       6.0    1.0  ...          symmetry_xy              hea_line
+12       6.0    2.0  ...            brickwall           symmetry_xy
+13       6.0    2.0  ...          symmetry_xy              hea_ring
+14       6.0    2.0  ...          symmetry_xy                   ttn
+
+[15 rows x 7 columns]
+Residual PCA explained variance: [8.97075562e-01 1.02502602e-01 4.21836654e-04]
+           space  k  silhouette
+0   quantum_only  2    0.862527
+1   quantum_only  3    0.690828
+2   quantum_only  4    0.706558
+3   quantum_only  5    0.654414
+4   quantum_only  6    0.631662
+5   quantum_only  7    0.644660
+6   quantum_only  8    0.653986
+7   residualized  2    0.556959
+8   residualized  3    0.500100
+9   residualized  4    0.388592
+10  residualized  5    0.427736
+11  residualized  6    0.478215
+12  residualized  7    0.485320
+13  residualized  8    0.485564
+Pareto-optimal designs: 11
+      family  n_qubits  ...  parameter_count  two_qubit_gate_count
+12  hea_ring       4.0  ...             12.0                   4.0
+24       ttn       4.0  ...             12.0                   2.0
+7   hea_line       4.0  ...             24.0                   6.0
+13  hea_ring       4.0  ...             24.0                   8.0
+25       ttn       4.0  ...             24.0                   3.0
+14  hea_ring       4.0  ...             36.0                  12.0
+26       ttn       4.0  ...             36.0                   5.0
+15  hea_ring       6.0  ...             18.0                   6.0
+11  hea_line       6.0  ...             54.0                  15.0
+17  hea_ring       6.0  ...             54.0                  18.0
+29       ttn       6.0  ...             54.0                   5.0
+
+[11 rows x 8 columns]
+   n_qubits  pc1_variance  pc2_variance  pc1_plus_pc2
+0       4.0      0.947733      0.052184      0.999917
+1       6.0      0.917184      0.082708      0.999893
+{
+  "n_raw_rows": 30,
+  "n_design_points": 30,
+  "quantum_pca_two_component_variance": 0.999737763611133,
+  "pc1_R2_from_structural_scale": 0.7515606854880481,
+  "pc2_R2_from_structural_scale": 0.5975226933882604,
+  "best_exploratory_cluster_result": {
+    "space": "quantum_only",
+    "k": 2,
+    "silhouette": 0.8625273837640312
+  },
+  "pareto_design_count": 11
+}
+
+Interpretation:
+- The quantum descriptors are strongly compressible into two dimensions.
+- PC1 is largely explained by structural scale.
+- PC2 may contain architecture-specific information.
+- Persistent family separation in the residualized plots is the strongest evidence for an architecture manifold.
+Archive created: /home/runner/work/pqc_latent_manifold_study/pqc_latent_manifold_study/pqc_latent_results.zip
+Not running in Colab. Retrieve: /home/runner/work/pqc_latent_manifold_study/pqc_latent_manifold_study/pqc_latent_results.zip
