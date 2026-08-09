@@ -1,13 +1,20 @@
 {
-  "n_raw_rows": 30,
-  "n_design_points": 30,
-  "quantum_pca_two_component_variance": 0.999737763611133,
-  "pc1_R2_from_structural_scale": 0.7515606854880481,
-  "pc2_R2_from_structural_scale": 0.5975226933882604,
+  "n_raw_rows": 750,
+  "n_design_points": 75,
+  "quantum_features": [
+    "expressibility_kl",
+    "meyer_wallach_mean",
+    "log10_gradient_variance_mean_staggered_z"
+  ],
+  "quantum_pca_two_component_variance": 0.8609842666043283,
+  "quantum_participation_ratio_dimension": 2.043520022209716,
+  "pc1_R2_from_structural_scale": 0.5687837053006624,
+  "pc2_R2_from_structural_scale": 0.2962927475980799,
   "best_exploratory_cluster_result": {
-    "space": "quantum_only",
+    "space": "residualized",
     "k": 2,
-    "silhouette": 0.8625273837640312
+    "silhouette": 0.6979293819889788
   },
-  "pareto_design_count": 11
+  "global_pareto_design_count": 16,
+  "fixed_size_depth_pareto_design_count": 66
 }

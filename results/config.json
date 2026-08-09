@@ -1,0 +1,33 @@
+{
+  "qubit_counts": [
+    4,
+    6,
+    8
+  ],
+  "depths": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "families": [
+    "hea_line",
+    "hea_ring",
+    "brickwall",
+    "ttn",
+    "symmetry_xy"
+  ],
+  "n_instances": 10,
+  "n_state_samples": 100,
+  "n_pair_samples": 5000,
+  "n_grad_samples": 100,
+  "n_bins": 40,
+  "trainability_observables": [
+    "local_z",
+    "staggered_z"
+  ],
+  "primary_trainability_observable": "staggered_z",
+  "seed": 42,
+  "output_dir": "results"
+}
